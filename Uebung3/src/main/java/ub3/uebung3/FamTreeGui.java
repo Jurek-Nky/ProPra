@@ -1,11 +1,14 @@
 package ub3.uebung3;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -82,32 +85,36 @@ public class FamTreeGui extends Application {
         });
         load.setOnAction(actionEvent -> loadButton(stage));
         newFamilyMember.setOnAction(actionEvent -> {
-            switch (genderSelect.getValue()) {
-                case "Male" -> {
-                    if (inputFather.getText().isEmpty() || inputMother.getText().isEmpty()) {
-                        newMemberButton(inputName.getText(), "m");
-                    } else {
-                        try {
-                            newMemberButton(inputName.getText(), inputMother.getText(), inputFather.getText(), "m");
-                        } catch (PersonNotFound | RelationNotPossible e) {
-                            textArea.setText(e.getLocalizedMessage());
+            if (genderSelect.getValue() != null) {
+                switch (genderSelect.getValue()) {
+                    case "Male" -> {
+                        if (inputFather.getText().isEmpty() || inputMother.getText().isEmpty()) {
+                            newMemberButton(inputName.getText(), "m");
+                        } else {
+                            try {
+                                newMemberButton(inputName.getText(), inputMother.getText(), inputFather.getText(), "m");
+                            } catch (PersonNotFound | RelationNotPossible e) {
+                                textArea.setText(e.getLocalizedMessage());
+                            }
                         }
                     }
-                }
-                case "Female" -> {
-                    if (inputFather.getText().isEmpty() || inputMother.getText().isEmpty()) {
-                        newMemberButton(inputName.getText(), "f");
-                    } else {
-                        try {
-                            newMemberButton(inputName.getText(), inputMother.getText(), inputFather.getText(), "f");
-                        } catch (PersonNotFound | RelationNotPossible e) {
-                            textArea.setText(e.getLocalizedMessage());
+                    case "Female" -> {
+                        if (inputFather.getText().isEmpty() || inputMother.getText().isEmpty()) {
+                            newMemberButton(inputName.getText(), "f");
+                        } else {
+                            try {
+                                newMemberButton(inputName.getText(), inputMother.getText(), inputFather.getText(), "f");
+                            } catch (PersonNotFound | RelationNotPossible e) {
+                                textArea.setText(e.getLocalizedMessage());
+                            }
                         }
                     }
-                }
-                default -> {
+                    default -> {
 
+                    }
                 }
+            } else {
+                textArea.setText("No Gender selected!");
             }
             generateTree();
 
@@ -181,7 +188,19 @@ public class FamTreeGui extends Application {
     private Button generateTreeRec(Person person, int generation, int column) {
 
         Button btn = new Button(person.getName());
-        btn.setOnAction(actionEvent -> System.out.println(person.getName() + " : " + column));
+        btn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                textArea.setText(String.format("Name: %s\nGeneration: %s\nKekuele: [", person.getName(), person.getGeneration()));
+                for (int i : person.getKekuleNr()) {
+                    textArea.appendText(i + ", ");
+                }
+                textArea.appendText("]");
+                if (person.getFather() != null){textArea.appendText(String.format("\nMother: %s", person.getMother().getName()));}
+                if (person.getMother() != null){textArea.appendText(String.format("\nFather: %s", person.getFather().getName()));}
+
+            }
+        });
         System.out.println(btn.getText() + " : " + generation);
         btn.setPrefSize(100, 30);
         btn.setLayoutX(column * 100);
@@ -210,12 +229,7 @@ public class FamTreeGui extends Application {
             Line line = new Line(btnTmp.getLayoutX() + 100, btnTmp.getLayoutY() + 30, btn.getLayoutX() + 50, btn.getLayoutY());
             line.setStrokeWidth(2);
             buttonPane.getChildren().add(line);
-            line.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent mouseEvent) {
-                    System.out.printf("start %s:%s  end %s:%s%n", line.getStartX(), line.getStartY(), line.getEndX(), line.getEndY());
-                }
-            });
+            line.setOnMouseClicked(mouseEvent -> System.out.printf("start %s:%s  end %s:%s%n", line.getStartX(), line.getStartY(), line.getEndX(), line.getEndY()));
         }
         if (person.getMother() != null && listContainsNot(alreadyGenerated, person.getMother().getName())) {
             Button btnTmp = generateTreeRec(person.getMother(), generation - 1, column + familyTree.getAllChildrenCount(person.getMother()));
@@ -223,12 +237,7 @@ public class FamTreeGui extends Application {
             line.setStrokeWidth(2);
             line.setSmooth(true);
             buttonPane.getChildren().add(line);
-            line.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent mouseEvent) {
-                    System.out.printf("start %s:%s  end %s:%s%n", line.getStartX(), line.getStartY(), line.getEndX(), line.getEndY());
-                }
-            });
+            line.setOnMouseClicked(mouseEvent -> System.out.printf("start %s:%s  end %s:%s%n", line.getStartX(), line.getStartY(), line.getEndX(), line.getEndY()));
         }
 
         //add children
@@ -242,12 +251,7 @@ public class FamTreeGui extends Application {
                 Line line = new Line(btn.getLayoutX() + Xoffset, btn.getLayoutY() + Yoffset, btnTmp.getLayoutX() + 50, btnTmp.getLayoutY());
                 line.setStrokeWidth(2);
                 buttonPane.getChildren().add(line);
-                line.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent mouseEvent) {
-                        System.out.printf("start %s:%s  end %s:%s%n", line.getStartX(), line.getStartY(), line.getEndX(), line.getEndY());
-                    }
-                });
+                line.setOnMouseClicked(mouseEvent -> System.out.printf("start %s:%s  end %s:%s%n", line.getStartX(), line.getStartY(), line.getEndX(), line.getEndY()));
             }
         }
         return btn;

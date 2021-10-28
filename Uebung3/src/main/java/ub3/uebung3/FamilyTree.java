@@ -244,7 +244,7 @@ public class FamilyTree {
 
     }
 
-    public boolean addRelation(Person child, Person mother, Person father) throws RelationNotPossible{
+    public void addRelation(Person child, Person mother, Person father) throws RelationNotPossible{
         if (child != null && mother != null && father != null && child.getMother() == null && child.getFather() == null) {
             child.setFather(father);
             child.setMother(mother);
@@ -256,7 +256,8 @@ public class FamilyTree {
             }
             father.getChildren().add(child);
             mother.getChildren().add(child);
-            return true;
+            setGenerations();
+            return;
         }
         throw new RelationNotPossible();
     }
